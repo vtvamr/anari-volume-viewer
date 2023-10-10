@@ -11,15 +11,21 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
 
 find_package(anari 0.4.0 REQUIRED)
-find_package(HDF5 REQUIRED COMPONENTS CXX)
 
 add_executable(${PROJECT_NAME} TransferFunctionEditor.cpp viewer.cpp)
-target_link_libraries(${PROJECT_NAME} HDF5::HDF5 anari::anari_viewer)
+target_link_libraries(${PROJECT_NAME} anari::anari_viewer)
+
+option(USE_HDF5 "Support loading AMR grids from HDF5" OFF)
+if (USE_HDF5)
+  find_package(HDF5 REQUIRED COMPONENTS CXX)
+  target_compile_definitions(${PROJECT_NAME} PRIVATE -DHAVE_HDF5)
+  target_link_libraries(${PROJECT_NAME} HDF5::HDF5)
+endif()
 
 option(USE_VTK "Support for VTK unstructured grids" OFF)
 if (USE_VTK)
   target_sources(${PROJECT_NAME} PRIVATE readVTK.cpp)
-  target_compile_definitions(${PROJECT_NAME} PRIVATE -DHAVE_VTK=1)
+  target_compile_definitions(${PROJECT_NAME} PRIVATE -DHAVE_VTK)
 
   if (VTK_VERSION VERSION_LESS "8.90.0")
     find_package(VTK COMPONENTS
@@ -31,7 +37,6 @@ if (USE_VTK)
       REQUIRED
     )
     include(${VTK_USE_FILE})
-    target_link_libraries(${PROJECT_NAME} ${VTK_LIBRARIES})
   else()
     find_package(VTK COMPONENTS
       CommonColor
@@ -41,10 +46,11 @@ if (USE_VTK)
       IOLegacy #ugrid writer
       REQUIRED
     )
-    target_link_libraries(${PROJECT_NAME} ${VTK_LIBRARIES})
     vtk_module_autoinit(
       TARGETS ${PROJECT_NAME}
       MODULES ${VTK_LIBRARIES}
     )
   endif()
+
+  target_link_libraries(${PROJECT_NAME} ${VTK_LIBRARIES})
 endif()

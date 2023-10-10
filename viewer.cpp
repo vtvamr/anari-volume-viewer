@@ -13,8 +13,10 @@
 #include <sstream>
 
 #include "TransferFunctionEditor.h"
-#include "readFlash.h"
 #include "readRAW.h"
+#ifdef HAVE_HDF5
+#include "readFlash.h"
+#endif
 #ifdef HAVE_VTK
 #include "readVTK.h"
 #endif
@@ -78,8 +80,10 @@ struct AppState
   anari::Device device{nullptr};
   anari::World world{nullptr};
   anari::SpatialField field{nullptr};
+#ifdef HAVE_HDF5
   FlashReader flashReader;
   AMRField data;
+#endif
 #ifdef HAVE_VTK
   VTKReader vtkReader;
   UnstructuredField udata;
@@ -286,7 +290,9 @@ class Application : public anari_viewer::Application
 
       g_voxelRange[0] = data.dataRange.x;
       g_voxelRange[1] = data.dataRange.y;
-    } else if (m_state.flashReader.open(g_filename.c_str())) {
+    }
+#ifdef HAVE_HDF5
+    else if (m_state.flashReader.open(g_filename.c_str())) {
       m_state.data = m_state.flashReader.getField(0);
       auto &data = m_state.data;
 
@@ -341,6 +347,7 @@ class Application : public anari_viewer::Application
       g_voxelRange[0] = data.voxelRange.x;
       g_voxelRange[1] = data.voxelRange.y;
     }
+#endif
 #ifdef HAVE_VTK
     else if (m_state.vtkReader.open(g_filename.c_str())) {
       bool indexPrefixed = false;
@@ -499,6 +506,7 @@ class Application : public anari_viewer::Application
         ImGui::EndMenu();
       }
 
+#ifdef HAVE_HDF5
       if (ImGui::BeginMenu("Volume")) {
         ImGui::Text("METHOD:");
         auto d = m_state.device;
@@ -517,6 +525,7 @@ class Application : public anari_viewer::Application
 
         ImGui::EndMenu();
       }
+#endif
 
       ImGui::EndMainMenuBar();
     }
