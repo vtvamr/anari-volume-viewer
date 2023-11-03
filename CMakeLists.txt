@@ -10,10 +10,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
 
+set(glm_DIR ${CMAKE_CURRENT_LIST_DIR}/external/glm/lib/cmake/glm)
+find_package(glm REQUIRED)
+mark_as_advanced(glm_DIR)
+
 find_package(anari 0.8.0 REQUIRED COMPONENTS viewer)
 
 add_executable(${PROJECT_NAME} TransferFunctionEditor.cpp viewer.cpp)
-target_link_libraries(${PROJECT_NAME} anari::anari_viewer)
+target_link_libraries(${PROJECT_NAME} glm::glm anari::anari_viewer)
 
 option(USE_HDF5 "Support loading AMR grids from HDF5" OFF)
 if (USE_HDF5)
