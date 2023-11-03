@@ -1,7 +1,7 @@
 ## Copyright 2023 Stefan Zellmann and Jefferson Amstutz
 ## SPDX-License-Identifier: Apache-2.0
 
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.10)
 
 project(anariVolumeViewer LANGUAGES C CXX)
 
@@ -10,7 +10,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
 
-find_package(anari 0.4.0 REQUIRED)
+find_package(anari 0.8.0 REQUIRED COMPONENTS viewer)
 
 add_executable(${PROJECT_NAME} TransferFunctionEditor.cpp viewer.cpp)
 target_link_libraries(${PROJECT_NAME} anari::anari_viewer)

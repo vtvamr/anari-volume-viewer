@@ -409,7 +409,7 @@ class Application : public anari_viewer::Application
     anari::setParameter(device, volume, "field", m_state.field);
 
     {
-      std::vector<anari::float3> colors;
+      std::vector<anari::math::float3> colors;
       std::vector<float> opacities;
 
       colors.emplace_back(0.f, 0.f, 1.f);
