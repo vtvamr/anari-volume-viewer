@@ -2,8 +2,8 @@
 
 Mini viewer application able to render volumes with ANARI. Dependencies are
 
-- ANARI-SDK: https://github.com/KhronosGroup/ANARI-SDK/ (version 0.7.x, make
-  sure to install the viewer)
+- ANARI-SDK: https://github.com/KhronosGroup/ANARI-SDK/ (version 0.8.x, with
+`INSTALL_VIEWER_LIBRARY=ON`)
 - VTK (optional, support for unstructured volume files)
 - HDF5 (optional, support for FLASH AMR)
 
