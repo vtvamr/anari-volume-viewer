@@ -570,7 +570,7 @@ static void parseCommandLine(int argc, char *argv[])
       g_libraryName = argv[++i];
     else if (arg == "--debug" || arg == "-g")
       g_enableDebug = true;
-    else if (arg == "--trace" || arg == "-t")
+    else if (arg == "--trace")
       g_traceDir = argv[++i];
     else if (arg == "--dims" || arg == "-d") {
       g_dimX = std::atoi(argv[++i]);
