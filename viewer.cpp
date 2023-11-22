@@ -546,7 +546,18 @@ class Application : public anari_viewer::Application
               opacities.size());
           anariSetParameter(
               device, volume, "valueRange", ANARI_FLOAT32_BOX1, &valueRange);
+
           anari::commitParameters(device, volume);
+          auto texelArray = anari::newArray1D(device, ANARI_FLOAT32_VEC3, colors.size());
+          {
+            auto *texels = anari::map<glm::vec3>(device, texelArray);
+            for (int i=0; i<colors.size(); i++) {
+              texels[i] = colors[i];
+            }
+            anari::unmap(device, texelArray);
+          }
+          anari::setAndReleaseParameter(device, texture, "image", texelArray);
+          anari::commitParameters(device, texture);
         });
 
 
