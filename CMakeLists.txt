@@ -16,7 +16,8 @@ mark_as_advanced(glm_DIR)
 
 find_package(anari 0.8.0 REQUIRED COMPONENTS viewer)
 
-add_executable(${PROJECT_NAME} TransferFunctionEditor.cpp viewer.cpp)
+add_executable(${PROJECT_NAME}
+    ISOSurfaceEditor.cpp TransferFunctionEditor.cpp viewer.cpp)
 target_link_libraries(${PROJECT_NAME} glm::glm anari::anari_viewer)
 
 option(USE_HDF5 "Support loading AMR grids from HDF5" OFF)
