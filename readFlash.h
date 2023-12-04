@@ -3,12 +3,15 @@
 
 #pragma once
 
+// std
 #include <H5Cpp.h>
 #include <array>
 #include <cassert>
 #include <cfloat>
 #include <cmath>
 #include <vector>
+// ours
+#include "FieldTypes.h"
 
 #define MAX_STRING_LENGTH 80
 
@@ -224,24 +227,6 @@ inline void read_variable(
   // std::cout << dims[0] << ' ' << dims[1] << ' ' << dims[2] << ' ' << dims[3]
   // << '\n';
 }
-
-typedef std::array<int, 6> BlockBounds;
-struct BlockData
-{
-  int dims[3];
-  std::vector<float> values;
-};
-struct AMRField
-{
-  std::vector<float> cellWidth;
-  std::vector<int> blockLevel;
-  std::vector<BlockBounds> blockBounds;
-  std::vector<BlockData> blockData;
-  struct
-  {
-    float x, y;
-  } voxelRange;
-};
 
 inline AMRField toAMRField(const grid_t &grid, const variable_t &var)
 {

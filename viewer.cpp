@@ -11,7 +11,8 @@
 #include <memory>
 #include <random>
 #include <sstream>
-
+// ours
+#include "FieldTypes.h"
 #include "TransferFunctionEditor.h"
 #include "readRAW.h"
 #ifdef HAVE_HDF5
@@ -19,6 +20,9 @@
 #endif
 #ifdef HAVE_VTK
 #include "readVTK.h"
+#endif
+#ifdef HAVE_UMESH
+#include "readUMesh.h"
 #endif
 
 static const bool g_true = true;
@@ -78,16 +82,19 @@ struct AppState
   anari::Device device{nullptr};
   anari::World world{nullptr};
   anari::SpatialField field{nullptr};
+  AMRField data;
+  UnstructuredField udata;
+  StructuredField sdata;
 #ifdef HAVE_HDF5
   FlashReader flashReader;
-  AMRField data;
 #endif
 #ifdef HAVE_VTK
   VTKReader vtkReader;
-  UnstructuredField udata;
+#endif
+#ifdef HAVE_UMESH
+  UMeshReader umeshReader;
 #endif
   RAWReader rawReader;
-  StructuredField sdata;
 };
 
 static void statusFunc(const void *userData,
@@ -350,6 +357,61 @@ class Application : public anari_viewer::Application
     else if (m_state.vtkReader.open(g_filename.c_str())) {
       bool indexPrefixed = false;
       m_state.udata = m_state.vtkReader.getField(0, indexPrefixed);
+      auto &data = m_state.udata;
+
+      auto field =
+          anari::newObject<anari::SpatialField>(device, "unstructured");
+
+      printf("Array sizes:\n");
+      printf("    'vertexPosition': %zu\n", data.vertexPosition.size());
+      printf("    'vertexData'    : %zu\n", data.vertexData.size());
+      printf("    'index'         : %zu\n", data.index.size());
+      printf("    'cellIndex'     : %zu\n", data.cellIndex.size());
+      printf("    'cellType'      : %zu\n", data.cellType.size());
+
+      anari::setParameterArray1D(device,
+          field,
+          "vertex.position",
+          ANARI_FLOAT32_VEC3,
+          data.vertexPosition.data(),
+          data.vertexPosition.size());
+      anari::setParameterArray1D(device,
+          field,
+          "vertex.data",
+          ANARI_FLOAT32,
+          data.vertexData.data(),
+          data.vertexData.size());
+      anari::setParameterArray1D(device,
+          field,
+          "index",
+          ANARI_UINT64,
+          data.index.data(),
+          data.index.size());
+      anari::setParameter(
+          device, field, "indexPrefixed", ANARI_BOOL, &data.indexPrefixed);
+      anari::setParameterArray1D(device,
+          field,
+          "cell.index",
+          ANARI_UINT64,
+          data.cellIndex.data(),
+          data.cellIndex.size());
+      anari::setParameterArray1D(device,
+          field,
+          "cell.type",
+          ANARI_UINT8,
+          data.cellType.data(),
+          data.cellType.size());
+
+      anari::commitParameters(device, field);
+      m_state.field = field;
+
+      g_voxelRange[0] = data.dataRange.x;
+      g_voxelRange[1] = data.dataRange.y;
+    }
+#endif
+#ifdef HAVE_UMESH
+    else if (m_state.umeshReader.open(g_filename.c_str())) {
+      m_state.udata = m_state.umeshReader.getField(0);
       auto &data = m_state.udata;
 
       auto field =
