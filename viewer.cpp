@@ -471,7 +471,7 @@ class Application : public anari_viewer::Application
 
         anari::setParameterArray1D(device,
             field,
-            "block.data",
+            "grid.data",
             ANARI_ARRAY1D,
             gridDataV.data(),
             gridDataV.size());
