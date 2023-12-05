@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <array>
+
 // AMR field type /////////////////////////////////////////////////////////////
 typedef std::array<int, 6> BlockBounds;
 struct BlockData
@@ -40,5 +42,16 @@ struct UnstructuredField
   {
     float x, y;
   } dataRange;
+
+  // unstructured meshes can optionally store
+  // vertex-centered grids
+  typedef std::array<float, 6> GridDomain;
+  struct GridData
+  {
+    int dims[3];
+    std::vector<float> values;
+  };
+  std::vector<GridDomain> gridDomains;
+  std::vector<GridData> gridData;
 };
 

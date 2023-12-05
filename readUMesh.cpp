@@ -39,11 +39,11 @@ UnstructuredField UMeshReader::getField(int index)
   }
 
   // vertex.data
-  assert(!mesh->perVertex->values.empty());
   fields[index].dataRange.x = FLT_MAX;
   fields[index].dataRange.y = -FLT_MAX;
 
   for (size_t i=0; i<mesh->vertices.size(); ++i) {
+    assert(!mesh->perVertex->values.empty());
     float value = mesh->perVertex->values[i];
     fields[index].vertexData.push_back(value);
     fields[index].dataRange.x = std::min(fields[index].dataRange.x, value);
@@ -81,6 +81,32 @@ UnstructuredField UMeshReader::getField(int index)
     for (int j=0; j<mesh->hexes[i].numVertices; ++j) {
       fields[index].index.push_back((uint64_t)mesh->hexes[i][j]);
     }
+  }
+
+  for (size_t i=0;i<mesh->grids.size(); ++i) {
+    const umesh::Grid &grid = mesh->grids[i];
+
+    UnstructuredField::GridDomain gridDomain;
+    gridDomain[0] = grid.domain.lower.x;
+    gridDomain[1] = grid.domain.lower.y;
+    gridDomain[2] = grid.domain.lower.z;
+    gridDomain[3] = grid.domain.upper.x;
+    gridDomain[4] = grid.domain.upper.y;
+    gridDomain[5] = grid.domain.upper.z;
+
+    UnstructuredField::GridData gridData;
+    for (int d=0;d<3;++d) {
+      gridData.dims[0] = grid.numCells[0];
+    }
+
+    size_t numScalars = grid.numCells.x*size_t(grid.numCells.y)*grid.numCells.z;
+    gridData.values.resize(numScalars);
+    for (size_t s=0;s<numScalars;++s) {
+      gridData.values[s] = mesh->gridScalars[grid.scalarsOffset + s];
+    }
+
+    fields[index].gridData.push_back(gridData);
+    fields[index].gridDomains.push_back(gridDomain);
   }
 
   return fields[index];

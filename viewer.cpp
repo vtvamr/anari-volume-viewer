@@ -423,6 +423,8 @@ class Application : public anari_viewer::Application
       printf("    'index'         : %zu\n", data.index.size());
       printf("    'cellIndex'     : %zu\n", data.cellIndex.size());
       printf("    'cellType'      : %zu\n", data.cellType.size());
+      printf("    'gridData'      : %zu\n", data.gridData.size());
+      printf("    'gridDomains'   : %zu\n", data.gridDomains.size());
 
       anari::setParameterArray1D(device,
           field,
@@ -456,6 +458,30 @@ class Application : public anari_viewer::Application
           ANARI_UINT8,
           data.cellType.data(),
           data.cellType.size());
+
+      if (!data.gridData.empty() && !data.gridDomains.empty()) {
+        std::vector<anari::Array3D> gridDataV(data.gridData.size());
+        for (size_t i = 0; i < data.gridData.size(); ++i) {
+          gridDataV[i] = anari::newArray3D(device,
+              data.gridData[i].values.data(),
+              data.gridData[i].dims[0],
+              data.gridData[i].dims[1],
+              data.gridData[i].dims[2]);
+        }
+
+        anari::setParameterArray1D(device,
+            field,
+            "block.data",
+            ANARI_ARRAY1D,
+            gridDataV.data(),
+            gridDataV.size());
+        anari::setParameterArray1D(device,
+            field,
+            "grid.domains",
+            ANARI_INT32_BOX3,
+            data.gridDomains.data(),
+            data.gridDomains.size());
+      }
 
       anari::commitParameters(device, field);
       m_state.field = field;
