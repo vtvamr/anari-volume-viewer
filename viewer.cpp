@@ -478,7 +478,7 @@ class Application : public anari_viewer::Application
         anari::setParameterArray1D(device,
             field,
             "grid.domains",
-            ANARI_INT32_BOX3,
+            ANARI_FLOAT32_BOX3,
             data.gridDomains.data(),
             data.gridDomains.size());
       }
