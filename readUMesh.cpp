@@ -102,7 +102,10 @@ UnstructuredField UMeshReader::getField(int index)
 
     gridData.values.resize(numScalars);
     for (size_t s = 0; s < numScalars; ++s) {
-      gridData.values[s] = mesh->gridScalars[grid.scalarsOffset + s];
+      float value = mesh->gridScalars[grid.scalarsOffset + s];
+      gridData.values[s] = value;
+      fields[index].dataRange.x = std::min(fields[index].dataRange.x, value);
+      fields[index].dataRange.y = std::max(fields[index].dataRange.y, value);
     }
 
     fields[index].gridData.push_back(gridData);
