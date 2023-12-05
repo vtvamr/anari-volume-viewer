@@ -8,9 +8,7 @@
 // ours
 #include "readUMesh.h"
 
-UMeshReader::~UMeshReader()
-{
-}
+UMeshReader::~UMeshReader() {}
 
 bool UMeshReader::open(const char *fileName)
 {
@@ -29,11 +27,11 @@ UnstructuredField UMeshReader::getField(int index)
   assert(index == 0);
 
   if (fields.empty()) {
-    fields.resize(index+1);
+    fields.resize(index + 1);
   }
 
   // vertex.position
-  for (size_t i=0; i<mesh->vertices.size(); ++i) {
+  for (size_t i = 0; i < mesh->vertices.size(); ++i) {
     const auto V = mesh->vertices[i];
     fields[index].vertexPosition.push_back({V.x, V.y, V.z});
   }
@@ -42,7 +40,7 @@ UnstructuredField UMeshReader::getField(int index)
   fields[index].dataRange.x = FLT_MAX;
   fields[index].dataRange.y = -FLT_MAX;
 
-  for (size_t i=0; i<mesh->vertices.size(); ++i) {
+  for (size_t i = 0; i < mesh->vertices.size(); ++i) {
     assert(!mesh->perVertex->values.empty());
     float value = mesh->perVertex->values[i];
     fields[index].vertexData.push_back(value);
@@ -51,39 +49,39 @@ UnstructuredField UMeshReader::getField(int index)
   }
 
   // cells
-  for (size_t i=0;i<mesh->tets.size(); ++i) {
-    fields[index].cellType.push_back(10/*VKL_TETRAHEDRON*/);
+  for (size_t i = 0; i < mesh->tets.size(); ++i) {
+    fields[index].cellType.push_back(10 /*VKL_TETRAHEDRON*/);
     fields[index].cellIndex.push_back(fields[index].index.size());
-    for (int j=0; j<mesh->tets[i].numVertices; ++j) {
+    for (int j = 0; j < mesh->tets[i].numVertices; ++j) {
       fields[index].index.push_back((uint64_t)mesh->tets[i][j]);
     }
   }
 
-  for (size_t i=0;i<mesh->pyrs.size(); ++i) {
-    fields[index].cellType.push_back(14/*VKL_PYRAMID*/);
+  for (size_t i = 0; i < mesh->pyrs.size(); ++i) {
+    fields[index].cellType.push_back(14 /*VKL_PYRAMID*/);
     fields[index].cellIndex.push_back(fields[index].index.size());
-    for (int j=0; j<mesh->pyrs[i].numVertices; ++j) {
+    for (int j = 0; j < mesh->pyrs[i].numVertices; ++j) {
       fields[index].index.push_back((uint64_t)mesh->pyrs[i][j]);
     }
   }
 
-  for (size_t i=0;i<mesh->wedges.size(); ++i) {
-    fields[index].cellType.push_back(13/*VKL_WEDGE*/);
+  for (size_t i = 0; i < mesh->wedges.size(); ++i) {
+    fields[index].cellType.push_back(13 /*VKL_WEDGE*/);
     fields[index].cellIndex.push_back(fields[index].index.size());
-    for (int j=0; j<mesh->wedges[i].numVertices; ++j) {
+    for (int j = 0; j < mesh->wedges[i].numVertices; ++j) {
       fields[index].index.push_back((uint64_t)mesh->wedges[i][j]);
     }
   }
 
-  for (size_t i=0;i<mesh->hexes.size(); ++i) {
-    fields[index].cellType.push_back(12/*VKL_HEXAHEDRON*/);
+  for (size_t i = 0; i < mesh->hexes.size(); ++i) {
+    fields[index].cellType.push_back(12 /*VKL_HEXAHEDRON*/);
     fields[index].cellIndex.push_back(fields[index].index.size());
-    for (int j=0; j<mesh->hexes[i].numVertices; ++j) {
+    for (int j = 0; j < mesh->hexes[i].numVertices; ++j) {
       fields[index].index.push_back((uint64_t)mesh->hexes[i][j]);
     }
   }
 
-  for (size_t i=0;i<mesh->grids.size(); ++i) {
+  for (size_t i = 0; i < mesh->grids.size(); ++i) {
     const umesh::Grid &grid = mesh->grids[i];
 
     UnstructuredField::GridDomain gridDomain;
@@ -95,13 +93,14 @@ UnstructuredField UMeshReader::getField(int index)
     gridDomain[5] = grid.domain.upper.z;
 
     UnstructuredField::GridData gridData;
-    for (int d=0;d<3;++d) {
+    for (int d = 0; d < 3; ++d) {
       gridData.dims[0] = grid.numCells[0];
     }
 
-    size_t numScalars = grid.numCells.x*size_t(grid.numCells.y)*grid.numCells.z;
+    size_t numScalars =
+        grid.numCells.x * size_t(grid.numCells.y) * grid.numCells.z;
     gridData.values.resize(numScalars);
-    for (size_t s=0;s<numScalars;++s) {
+    for (size_t s = 0; s < numScalars; ++s) {
       gridData.values[s] = mesh->gridScalars[grid.scalarsOffset + s];
     }
 

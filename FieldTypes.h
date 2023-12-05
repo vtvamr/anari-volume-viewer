@@ -54,4 +54,3 @@ struct UnstructuredField
   std::vector<GridDomain> gridDomains;
   std::vector<GridData> gridData;
 };
-
