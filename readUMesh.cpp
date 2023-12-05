@@ -92,13 +92,14 @@ UnstructuredField UMeshReader::getField(int index)
     gridDomain[4] = grid.domain.upper.y;
     gridDomain[5] = grid.domain.upper.z;
 
+    size_t numScalars =
+        (grid.numCells.x + 1) * size_t(grid.numCells.y + 1) * (grid.numCells.z + 1);
+
     UnstructuredField::GridData gridData;
     for (int d = 0; d < 3; ++d) {
-      gridData.dims[0] = grid.numCells[0];
+      gridData.dims[d] = grid.numCells[d] + 1;
     }
 
-    size_t numScalars =
-        grid.numCells.x * size_t(grid.numCells.y) * grid.numCells.z;
     gridData.values.resize(numScalars);
     for (size_t s = 0; s < numScalars; ++s) {
       gridData.values[s] = mesh->gridScalars[grid.scalarsOffset + s];
