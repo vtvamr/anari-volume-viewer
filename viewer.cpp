@@ -530,7 +530,7 @@ class Application : public anari_viewer::Application
 
     anari::commitParameters(device, volume);
 
-#if 0
+#if 1
     anari::setAndReleaseParameter(
         device, m_state.world, "volume", anari::newArray1D(device, &volume));
     anari::release(device, volume);
@@ -584,8 +584,11 @@ class Application : public anari_viewer::Application
     anari::setAndReleaseParameter(device, surface, "material", material);
     anari::commitParameters(device, surface);
 
+#if 0
     anari::setAndReleaseParameter(
         device, m_state.world, "surface", anari::newArray1D(device, &surface));
+    anari::release(device, surface);
+#endif
 
     anari::commitParameters(device, m_state.world);
 
