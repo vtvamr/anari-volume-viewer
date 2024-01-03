@@ -673,7 +673,7 @@ class Application : public anari_viewer::Application
     windows.emplace_back(viewport);
     windows.emplace_back(leditor);
     windows.emplace_back(tfeditor);
-    windows.emplace_back(isoeditor);
+//  windows.emplace_back(isoeditor);
 
     return windows;
   }
