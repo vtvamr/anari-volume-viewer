@@ -212,28 +212,28 @@ class Application : public anari_viewer::Application
 
       for (auto str : strings) {
         int dimx, dimy, dimz;
-        int res = sscanf(str.c_str(), "%dx%dx%d", &dimx, &dimy, &dimz);
+        int res = sscanf(str.c_str(), "%ix%ix%i", &dimx, &dimy, &dimz);
         if (res == 3) {
           g_dimX = dimx;
           g_dimY = dimy;
           g_dimZ = dimz;
         }
 
-        unsigned short bits;
-        res = sscanf(str.c_str(), "int%hu", &bits);
-        if (res == 1) {
+        int bits = 0;
+        res = sscanf(str.c_str(), "int%i", &bits);
+        if (res == 1)
           g_bytesPerCell = bits / 8;
-        }
 
-        res = sscanf(str.c_str(), "uint%hu", &bits);
-        if (res == 1) {
+        res = sscanf(str.c_str(), "uint%i", &bits);
+        if (res == 1)
           g_bytesPerCell = bits / 8;
-        }
 
-        if (g_dimX && g_dimY && g_dimZ && g_bytesPerCell) {
+        if (g_dimX && g_dimY && g_dimZ && g_bytesPerCell)
           break;
-        }
       }
+
+      if (!g_bytesPerCell)
+        g_bytesPerCell = 4;
 
       if (g_dimX && g_dimY && g_dimZ && g_bytesPerCell) {
         std::cout

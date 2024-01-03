@@ -29,8 +29,15 @@ endif()
 
 option(USE_UMESH "Support for umesh unstructured grids" OFF)
 if (USE_UMESH)
+  #
+  # first try find_package in CONFIG mode, it will be catched by OneTBB
+  # if OneTBB is not avaible, then use the old macro
+  #
+  find_package(TBB CONFIG)
+  if (NOT TBB_FOUND)
+    find_package(TBB)
+  endif()
   find_package(umesh)
-  find_package(tbb)
   if (umesh_FOUND)
     target_sources(${PROJECT_NAME} PRIVATE readUMesh.cpp)
     target_compile_definitions(${PROJECT_NAME} PRIVATE -DHAVE_UMESH)
