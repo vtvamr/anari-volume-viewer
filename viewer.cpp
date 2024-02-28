@@ -503,7 +503,7 @@ class Application : public anari_viewer::Application
     // Volume //
 
     auto volume = anari::newObject<anari::Volume>(device, "transferFunction1D");
-    anari::setParameter(device, volume, "field", m_state.field);
+    anari::setParameter(device, volume, "value", m_state.field);
 
     {
       std::vector<anari::math::float3> colors;
