@@ -504,6 +504,7 @@ class Application : public anari_viewer::Application
 
     auto volume = anari::newObject<anari::Volume>(device, "transferFunction1D");
     anari::setParameter(device, volume, "value", m_state.field);
+    anari::setParameter(device, volume, "field", m_state.field);
 
     {
       std::vector<anari::math::float3> colors;
@@ -536,13 +537,16 @@ class Application : public anari_viewer::Application
     anari::release(device, volume);
 #endif
 
+#if 0
     // ISO Surface geom //
 
     auto geometry = anari::newObject<anari::Geometry>(device, "isosurface");
     anari::setParameter(device, geometry, "field", m_state.field);
 
     anari::commitParameters(device, geometry);
+#endif
 
+#if 0
     // Create color map texture //
 
     auto texelArray = anari::newArray1D(device, ANARI_FLOAT32_VEC3, 2);
@@ -584,7 +588,6 @@ class Application : public anari_viewer::Application
     anari::setAndReleaseParameter(device, surface, "material", material);
     anari::commitParameters(device, surface);
 
-#if 0
     anari::setAndReleaseParameter(
         device, m_state.world, "surface", anari::newArray1D(device, &surface));
     anari::release(device, surface);
@@ -639,19 +642,22 @@ class Application : public anari_viewer::Application
               device, volume, "valueRange", ANARI_FLOAT32_BOX1, &valueRange);
 
           anari::commitParameters(device, volume);
-          auto texelArray = anari::newArray1D(device, ANARI_FLOAT32_VEC3, colors.size());
+#if 0
+          auto texelArray =
+              anari::newArray1D(device, ANARI_FLOAT32_VEC3, colors.size());
           {
             auto *texels = anari::map<glm::vec3>(device, texelArray);
-            for (int i=0; i<colors.size(); i++) {
+            for (int i = 0; i < colors.size(); i++) {
               texels[i] = colors[i];
             }
             anari::unmap(device, texelArray);
           }
           anari::setAndReleaseParameter(device, texture, "image", texelArray);
           anari::commitParameters(device, texture);
+#endif
         });
 
-
+#if 0
     // ISO values
     auto *isoeditor = new windows::ISOSurfaceEditor();
     isoeditor->setValueRange({g_voxelRange[0], g_voxelRange[1]});
@@ -668,12 +674,13 @@ class Application : public anari_viewer::Application
           anari::newArray1D(device, isoValues.data(), isoValues.size()));
       anari::commitParameters(device, geometry);
     });
+#endif
 
     anari_viewer::WindowArray windows;
     windows.emplace_back(viewport);
     windows.emplace_back(leditor);
     windows.emplace_back(tfeditor);
-//  windows.emplace_back(isoeditor);
+    //  windows.emplace_back(isoeditor);
 
     return windows;
   }
