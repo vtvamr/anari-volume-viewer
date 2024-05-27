@@ -199,7 +199,7 @@ class Application : public anari_viewer::Application
   Application() = default;
   ~Application() override = default;
 
-  anari_viewer::WindowArray setup() override
+  anari_viewer::WindowArray setupWindows() override
   {
     ui::init();
 
@@ -685,7 +685,7 @@ class Application : public anari_viewer::Application
     return windows;
   }
 
-  void buildMainMenuUI() override
+  void buildMainMenuUI()
   {
     if (ImGui::BeginMainMenuBar()) {
       if (ImGui::BeginMenu("File")) {
