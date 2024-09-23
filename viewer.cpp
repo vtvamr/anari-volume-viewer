@@ -87,7 +87,7 @@ namespace viewer {
 
 struct AppState
 {
-  manipulators::Orbit manipulator;
+  anari_viewer::manipulators::Orbit manipulator;
   anari::Device device{nullptr};
   anari::World world{nullptr};
   anari::SpatialField field{nullptr};
@@ -201,7 +201,7 @@ class Application : public anari_viewer::Application
 
   anari_viewer::WindowArray setupWindows() override
   {
-    ui::init();
+    anari_viewer::ui::init();
 
     // If file type is raw, try to guess dimensions and data type
     // (if not already set)
@@ -604,12 +604,12 @@ class Application : public anari_viewer::Application
     if (g_useDefaultLayout)
       ImGui::LoadIniSettingsFromMemory(g_defaultLayout);
 
-    auto *viewport = new windows::Viewport(device, "Viewport");
+    auto *viewport = new anari_viewer::windows::Viewport(device, "Viewport");
     viewport->setManipulator(&m_state.manipulator);
     viewport->setWorld(m_state.world);
     viewport->resetView();
 
-    auto *leditor = new windows::LightsEditor({device});
+    auto *leditor = new anari_viewer::windows::LightsEditor({device});
     leditor->setWorlds({m_state.world});
 
     auto *tfeditor = new windows::TransferFunctionEditor();
@@ -727,7 +727,7 @@ class Application : public anari_viewer::Application
     anari::release(m_state.device, m_state.field);
     anari::release(m_state.device, m_state.world);
     anari::release(m_state.device, m_state.device);
-    ui::shutdown();
+    anari_viewer::ui::shutdown();
   }
 
  private:

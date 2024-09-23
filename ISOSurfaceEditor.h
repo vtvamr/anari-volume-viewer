@@ -19,7 +19,7 @@ namespace windows {
 
 using ISOUpdateCallback = std::function<void(const std::vector<float> &)>;
 
-class ISOSurfaceEditor : public anari_viewer::Window
+class ISOSurfaceEditor : public anari_viewer::windows::Window
 {
   static constexpr unsigned NumValues = 4;
 
