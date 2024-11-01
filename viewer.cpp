@@ -28,6 +28,8 @@
 #include "readUMesh.h"
 #endif
 
+#define ISO 0 // enable experimental support for isosurface geometry
+
 static const bool g_true = true;
 static bool g_verbose = false;
 static bool g_useDefaultLayout = true;
@@ -531,22 +533,26 @@ class Application : public anari_viewer::Application
 
     anari::commitParameters(device, volume);
 
-#if 1
+#if !ISO
     anari::setAndReleaseParameter(
         device, m_state.world, "volume", anari::newArray1D(device, &volume));
     anari::release(device, volume);
 #endif
 
-#if 0
+#if ISO
     // ISO Surface geom //
 
     auto geometry = anari::newObject<anari::Geometry>(device, "isosurface");
     anari::setParameter(device, geometry, "field", m_state.field);
-
+    float isoValue = (g_voxelRange[1] - g_voxelRange[0]) * 0.5f;
+    anari::setAndReleaseParameter(device,
+        geometry,
+        "isovalue",
+        anari::newArray1D(device, &isoValue, 1));
     anari::commitParameters(device, geometry);
 #endif
 
-#if 0
+#if ISO
     // Create color map texture //
 
     auto texelArray = anari::newArray1D(device, ANARI_FLOAT32_VEC3, 2);
@@ -642,7 +648,7 @@ class Application : public anari_viewer::Application
               device, volume, "valueRange", ANARI_FLOAT32_BOX1, &valueRange);
 
           anari::commitParameters(device, volume);
-#if 0
+#if ISO
           auto texelArray =
               anari::newArray1D(device, ANARI_FLOAT32_VEC3, colors.size());
           {
@@ -657,7 +663,7 @@ class Application : public anari_viewer::Application
 #endif
         });
 
-#if 0
+#if ISO
     // ISO values
     auto *isoeditor = new windows::ISOSurfaceEditor();
     isoeditor->setValueRange({g_voxelRange[0], g_voxelRange[1]});
@@ -680,7 +686,9 @@ class Application : public anari_viewer::Application
     windows.emplace_back(viewport);
     windows.emplace_back(leditor);
     windows.emplace_back(tfeditor);
-    //  windows.emplace_back(isoeditor);
+#if ISO
+    windows.emplace_back(isoeditor);
+#endif
 
     return windows;
   }
