@@ -28,12 +28,13 @@
 #include "readUMesh.h"
 #endif
 
-#define ISO 0 // enable experimental support for isosurface geometry
+#define ISO 1 // enable experimental support for isosurface geometry
 
 static const bool g_true = true;
 static bool g_verbose = false;
 static bool g_useDefaultLayout = true;
 static bool g_enableDebug = false;
+static bool g_hasIsosurfaceExt = false;
 static std::string g_libraryName = "environment";
 static anari::Library g_debug = nullptr;
 static anari::Device g_device = nullptr;
@@ -132,6 +133,24 @@ static void statusFunc(const void *userData,
     fprintf(stderr, "[DEBUG][%p] %s\n", source, message);
 }
 
+static bool deviceHasExtension(anari::Library library,
+    const std::string &deviceSubtype,
+    const std::string &extName)
+{
+  const char **extensions =
+      anariGetDeviceExtensions(library, deviceSubtype.c_str());
+
+  if (!extensions)
+    return false;
+
+  for (; *extensions; extensions++) {
+  std::cout << *extensions << '\n';
+    if (*extensions == extName)
+      return true;
+  }
+  return false;
+}
+
 static std::string getExt(const std::string &fileName)
 {
   int pos = fileName.rfind('.');
@@ -162,6 +181,9 @@ static void initializeANARI()
 
   if (g_enableDebug)
     g_debug = anariLoadLibrary("debug", statusFunc, &g_true);
+
+  g_hasIsosurfaceExt =
+      deviceHasExtension(library, "default", "ANARI_KHR_GEOMETRY_ISOSURFACE");
 
   anari::Device dev = anariNewDevice(library, "default");
 
@@ -533,71 +555,67 @@ class Application : public anari_viewer::Application
 
     anari::commitParameters(device, volume);
 
-#if !ISO
     anari::setAndReleaseParameter(
         device, m_state.world, "volume", anari::newArray1D(device, &volume));
     anari::release(device, volume);
-#endif
 
-#if ISO
+    const bool iso = g_hasIsosurfaceExt && ISO;
+
     // ISO Surface geom //
 
-    auto geometry = anari::newObject<anari::Geometry>(device, "isosurface");
-    anari::setParameter(device, geometry, "field", m_state.field);
-    float isoValue = (g_voxelRange[1] - g_voxelRange[0]) * 0.5f;
-    anari::setAndReleaseParameter(device,
-        geometry,
-        "isovalue",
-        anari::newArray1D(device, &isoValue, 1));
-    anari::commitParameters(device, geometry);
-#endif
+    anari::Geometry isoGeometry{nullptr};
+    anari::Sampler texture{nullptr};
+    
+    if (iso) {
+      isoGeometry = anari::newObject<anari::Geometry>(device, "isosurface");
+      anari::setParameter(device, isoGeometry, "field", m_state.field);
+      anari::commitParameters(device, isoGeometry);
 
-#if ISO
-    // Create color map texture //
+      // Create color map texture //
 
-    auto texelArray = anari::newArray1D(device, ANARI_FLOAT32_VEC3, 2);
-    {
-      auto *texels = anari::map<glm::vec3>(device, texelArray);
-      texels[0][0] = 1.f;
-      texels[0][1] = 0.f;
-      texels[0][2] = 0.f;
-      texels[1][0] = 0.f;
-      texels[1][1] = 1.f;
-      texels[1][2] = 0.f;
-      anari::unmap(device, texelArray);
+      auto texelArray = anari::newArray1D(device, ANARI_FLOAT32_VEC3, 2);
+      {
+        auto *texels = anari::map<glm::vec3>(device, texelArray);
+        texels[0][0] = 1.f;
+        texels[0][1] = 0.f;
+        texels[0][2] = 0.f;
+        texels[1][0] = 0.f;
+        texels[1][1] = 1.f;
+        texels[1][2] = 0.f;
+        anari::unmap(device, texelArray);
+      }
+
+      // Map iso values from raw to [0,1]:
+      glm::vec4 inOffset(
+          -g_voxelRange[0] / (g_voxelRange[1] - g_voxelRange[0]), 0, 0, 0);
+      glm::mat4 inTransform = glm::scale(glm::mat4(1.0f),
+          glm::vec3(1.f / (g_voxelRange[1] - g_voxelRange[0]), 1.f, 1.f));
+
+      texture = anari::newObject<anari::Sampler>(device, "image1D");
+      anari::setAndReleaseParameter(device, texture, "image", texelArray);
+      anari::setParameter(device, texture, "inAttribute", "attribute0");
+      anari::setParameter(device, texture, "filter", "linear");
+      anari::setParameter(device, texture, "inOffset", inOffset);
+      anari::setParameter(device, texture, "inTransform", inTransform);
+      anari::commitParameters(device, texture);
+
+      // Create and parameterize material //
+
+      auto material = anari::newObject<anari::Material>(device, "matte");
+      anari::setAndReleaseParameter(device, material, "color", texture);
+      anari::commitParameters(device, material);
+
+      // Create and parameterize surface //
+
+      auto surface = anari::newObject<anari::Surface>(device);
+      anari::setAndReleaseParameter(device, surface, "geometry", isoGeometry);
+      anari::setAndReleaseParameter(device, surface, "material", material);
+      anari::commitParameters(device, surface);
+
+      anari::setAndReleaseParameter(
+          device, m_state.world, "surface", anari::newArray1D(device, &surface));
+      anari::release(device, surface);
     }
-
-    // Map iso values from raw to [0,1]:
-    glm::vec4 inOffset(
-        -g_voxelRange[0] / (g_voxelRange[1] - g_voxelRange[0]), 0, 0, 0);
-    glm::mat4 inTransform = glm::scale(glm::mat4(1.0f),
-        glm::vec3(1.f / (g_voxelRange[1] - g_voxelRange[0]), 1.f, 1.f));
-
-    auto texture = anari::newObject<anari::Sampler>(device, "image1D");
-    anari::setAndReleaseParameter(device, texture, "image", texelArray);
-    anari::setParameter(device, texture, "inAttribute", "attribute0");
-    anari::setParameter(device, texture, "filter", "linear");
-    anari::setParameter(device, texture, "inOffset", inOffset);
-    anari::setParameter(device, texture, "inTransform", inTransform);
-    anari::commitParameters(device, texture);
-
-    // Create and parameterize material //
-
-    auto material = anari::newObject<anari::Material>(device, "matte");
-    anari::setAndReleaseParameter(device, material, "color", texture);
-    anari::commitParameters(device, material);
-
-    // Create and parameterize surface //
-
-    auto surface = anari::newObject<anari::Surface>(device);
-    anari::setAndReleaseParameter(device, surface, "geometry", geometry);
-    anari::setAndReleaseParameter(device, surface, "material", material);
-    anari::commitParameters(device, surface);
-
-    anari::setAndReleaseParameter(
-        device, m_state.world, "surface", anari::newArray1D(device, &surface));
-    anari::release(device, surface);
-#endif
 
     anari::commitParameters(device, m_state.world);
 
@@ -648,47 +666,50 @@ class Application : public anari_viewer::Application
               device, volume, "valueRange", ANARI_FLOAT32_BOX1, &valueRange);
 
           anari::commitParameters(device, volume);
-#if ISO
-          auto texelArray =
-              anari::newArray1D(device, ANARI_FLOAT32_VEC3, colors.size());
-          {
-            auto *texels = anari::map<glm::vec3>(device, texelArray);
-            for (int i = 0; i < colors.size(); i++) {
-              texels[i] = colors[i];
+
+          if (iso) {
+            auto texelArray =
+                anari::newArray1D(device, ANARI_FLOAT32_VEC3, colors.size());
+            {
+              auto *texels = anari::map<glm::vec3>(device, texelArray);
+              for (int i = 0; i < colors.size(); i++) {
+                texels[i] = colors[i];
+              }
+              anari::unmap(device, texelArray);
             }
-            anari::unmap(device, texelArray);
+            anari::setAndReleaseParameter(device, texture, "image", texelArray);
+            anari::commitParameters(device, texture);
           }
-          anari::setAndReleaseParameter(device, texture, "image", texelArray);
-          anari::commitParameters(device, texture);
-#endif
         });
 
-#if ISO
     // ISO values
-    auto *isoeditor = new windows::ISOSurfaceEditor();
-    isoeditor->setValueRange({g_voxelRange[0], g_voxelRange[1]});
-    isoeditor->setUpdateCallback(
-        [=](const std::vector<float> &isoValues) {
-      anari::setAndReleaseParameter(device,
-          geometry,
-          "isovalue",
-          anari::newArray1D(device, isoValues.data(), isoValues.size()));
+    windows::ISOSurfaceEditor *isoeditor{nullptr};
 
-      anari::setAndReleaseParameter(device,
-          geometry,
-          "primitive.attribute0",
-          anari::newArray1D(device, isoValues.data(), isoValues.size()));
-      anari::commitParameters(device, geometry);
-    });
-#endif
+    if (iso) {
+      isoeditor = new windows::ISOSurfaceEditor();
+      isoeditor->setValueRange({g_voxelRange[0], g_voxelRange[1]});
+      isoeditor->setUpdateCallback(
+          [=](const std::vector<float> &isoValues) {
+        anari::setAndReleaseParameter(device,
+            isoGeometry,
+            "isovalue",
+            anari::newArray1D(device, isoValues.data(), isoValues.size()));
+
+        anari::setAndReleaseParameter(device,
+            isoGeometry,
+            "primitive.attribute0",
+            anari::newArray1D(device, isoValues.data(), isoValues.size()));
+        anari::commitParameters(device, isoGeometry);
+      });
+    }
 
     anari_viewer::WindowArray windows;
     windows.emplace_back(viewport);
     windows.emplace_back(leditor);
     windows.emplace_back(tfeditor);
-#if ISO
-    windows.emplace_back(isoeditor);
-#endif
+    if (isoeditor) {
+      windows.emplace_back(isoeditor);
+    }
 
     return windows;
   }
