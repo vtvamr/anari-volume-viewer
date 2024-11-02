@@ -144,7 +144,6 @@ static bool deviceHasExtension(anari::Library library,
     return false;
 
   for (; *extensions; extensions++) {
-  std::cout << *extensions << '\n';
     if (*extensions == extName)
       return true;
   }
