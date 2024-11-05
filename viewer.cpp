@@ -5,6 +5,7 @@
 #include "anari_viewer/Application.h"
 #include "anari_viewer/windows/LightsEditor.h"
 #include "anari_viewer/windows/Viewport.h"
+#include "anari_viewer/Orbit.h"
 // glm
 #include "glm/gtc/matrix_transform.hpp"
 // std
@@ -90,7 +91,7 @@ namespace viewer {
 
 struct AppState
 {
-  anari_viewer::manipulators::Orbit manipulator;
+  manipulators::Orbit manipulator;
   anari::Device device{nullptr};
   anari::World world{nullptr};
   anari::SpatialField field{nullptr};
@@ -222,9 +223,9 @@ class Application : public anari_viewer::Application
   Application() = default;
   ~Application() override = default;
 
-  anari_viewer::WindowArray setupWindows() override
+  anari_viewer::WindowArray setup() override
   {
-    anari_viewer::ui::init();
+    ui::init();
 
     // If file type is raw, try to guess dimensions and data type
     // (if not already set)
@@ -627,12 +628,12 @@ class Application : public anari_viewer::Application
     if (g_useDefaultLayout)
       ImGui::LoadIniSettingsFromMemory(g_defaultLayout);
 
-    auto *viewport = new anari_viewer::windows::Viewport(device, "Viewport");
+    auto *viewport = new windows::Viewport(device, "Viewport");
     viewport->setManipulator(&m_state.manipulator);
     viewport->setWorld(m_state.world);
     viewport->resetView();
 
-    auto *leditor = new anari_viewer::windows::LightsEditor({device});
+    auto *leditor = new windows::LightsEditor({device});
     leditor->setWorlds({m_state.world});
 
     auto *tfeditor = new windows::TransferFunctionEditor();
@@ -755,7 +756,7 @@ class Application : public anari_viewer::Application
     anari::release(m_state.device, m_state.field);
     anari::release(m_state.device, m_state.world);
     anari::release(m_state.device, m_state.device);
-    anari_viewer::ui::shutdown();
+    ui::shutdown();
   }
 
  private:

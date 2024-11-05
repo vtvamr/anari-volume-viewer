@@ -22,7 +22,7 @@ using OpacityPoint = glm::vec2;
 using TFUpdateCallback =
     std::function<void(const glm::vec2 &, const std::vector<glm::vec4> &)>;
 
-class TransferFunctionEditor : public anari_viewer::windows::Window
+class TransferFunctionEditor : public anari_viewer::Window
 {
  public:
   TransferFunctionEditor(const char *name = "TF Editor");
