@@ -1,3 +1,5 @@
+> **This project is obsolete since all its developments have been integrated into [tsdViewer](https://github.com/NVIDIA/VisRTX/tree/next_release/tsd/apps/interactive/viewer).**
+
 # ANARI Mini-Viewer for Volumetric Data
 
 Mini viewer application able to render volumes with ANARI. Dependencies are
